@@ -777,7 +777,27 @@
                 toast.classList.remove('show');
             }, 3000);
         }
+
+        // デバッグ用：GAS接続テスト
+        async function testGASConnection() {
+            console.log('GAS接続テスト開始...');
+            console.log('GAS URL:', GAS_PROXY_URL);
+            
+            try {
+                const response = await fetch(GAS_PROXY_URL);
+                const data = await response.json();
+                console.log('GAS接続テスト成功:', data);
+                showToast('✅ GAS接続成功');
+            } catch (error) {
+                console.error('GAS接続エラー:', error);
+                showToast('❌ GAS接続失敗: ' + error.message);
+            }
+        }
+        
+        // ページ読み込み後にテスト実行（必要に応じてコメントアウト）
+        window.addEventListener('load', testGASConnection);
     </script>
 </body>
 </html>
+
 
