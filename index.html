@@ -447,14 +447,167 @@
             document.getElementById('loading').classList.add('active');
             document.getElementById('resultsSection').classList.remove('active');
             
-            // 分析実行（実際にはサンプルデータを表示）
-            setTimeout(() => {
-                displaySampleResults(formData);
+            try {
+                // Gemini APIで分析実行
+                const results = await analyzeWithGemini(formData);
+                displayAnalysisResults(results);
                 document.getElementById('loading').classList.remove('active');
                 document.getElementById('resultsSection').classList.add('active');
                 showToast('分析が完了しました');
-            }, 2000);
+            } catch (error) {
+                console.error('分析エラー:', error);
+                // エラー時はサンプルデータを表示
+                displaySampleResults(formData);
+                document.getElementById('loading').classList.remove('active');
+                document.getElementById('resultsSection').classList.add('active');
+                showToast('サンプル結果を表示しています（API接続エラー）');
+            }
         });
+        
+        // Gemini APIを使用した分析
+        async function analyzeWithGemini(formData) {
+            // ステップ1: メリットの網羅的抽出と優先順位付け
+            const meritPrompt = `
+以下の商品情報から、包括的な商品価値分析を行ってください。
+
+【商品情報】
+商品名: ${formData.productName}
+カテゴリ: ${formData.productCategory}
+商品説明: ${formData.productDescription}
+
+【分析手順】
+
+ステップ1: メリットの網羅的抽出
+以下のカテゴリから、考えられる限りのメリット（商品の強み・特徴）を10-15個抽出してください：
+- 成分・材料・素材
+- 製法・技術・工程
+- 効果・効能・結果
+- 知見・ノウハウ・専門性
+- 使用方法・利便性
+- 製品品質・安全性
+- 権威性・信頼性・実績
+- 経済条件・コスパ・価格
+- デザイン・見た目・パッケージ
+- サポート・アフター・保証
+
+ステップ2: 戦略的優先順位付け
+各メリットを以下の基準で評価してください：
+
+【1st（最重要）- USP候補】
+✓ 競合が持たない独自性がある
+✓ ターゲットの本質的ニーズに直結
+✓ 価格に見合う差別化価値を提供
+✓ 購買決定の最後の一押しになる
+
+【2nd（重要）- 商品価値の核】
+✓ カテゴリとして重要だが競合も持っている
+✓ ターゲットが期待する基本価値
+✓ 商品の信頼性・品質を担保する要素
+
+【3rd（補助的）- 付加価値】
+✓ あると嬉しいが決定的ではない
+✓ 競合比較で僅差をつける要素
+✓ 特定のサブセグメントには響く
+
+ステップ3: ベネフィット分析
+各メリットから導かれるベネフィット（顧客が得られる価値）を2-3個抽出してください。
+観点：
+- 機能的ベネフィット（実用性、効率性、性能向上）
+- 感情的ベネフィット（安心感、満足感、自信、喜び）
+- 社会的ベネフィット（他者からの評価、ステータス）
+- 経済的ベネフィット（コスト削減、投資対効果）
+
+【出力形式】
+以下のJSON形式で出力してください：
+{
+  "analysis": [
+    {
+      "priority": "1st/2nd/3rd",
+      "merit": "メリット内容",
+      "meritCategory": "カテゴリ名",
+      "benefits": [
+        {
+          "content": "ベネフィット内容",
+          "category": "効果・効能/製法/製品品質/利便性・快適さ/イメージ・印象/権威性・信頼性/リスク回避/経済性"
+        }
+      ],
+      "rationale": "優先順位の判断根拠"
+    }
+  ]
+}`;
+
+            try {
+                const response = await fetch(GEMINI_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: meritPrompt
+                            }]
+                        }],
+                        generationConfig: {
+                            temperature: 0.7,
+                            topK: 40,
+                            topP: 0.95,
+                            maxOutputTokens: 4096
+                        }
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API request failed: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const resultText = data.candidates[0].content.parts[0].text;
+                
+                // JSONパース（マークダウンコードブロックを除去）
+                const jsonStr = resultText.replace(/```json\n?|\n?```/g, '').trim();
+                const results = JSON.parse(jsonStr);
+                
+                return results.analysis;
+            } catch (error) {
+                console.error('Gemini API エラー:', error);
+                throw error;
+            }
+        }
+        
+        // 分析結果の表示
+        function displayAnalysisResults(analysisData) {
+            const tbody = document.getElementById('resultsTableBody');
+            tbody.innerHTML = '';
+            
+            analysisData.forEach(item => {
+                // 各メリットに対して、ベネフィットの数だけ行を作成
+                item.benefits.forEach((benefit, index) => {
+                    const tr = document.createElement('tr');
+                    
+                    // 最初の行のみメリット情報を表示
+                    if (index === 0) {
+                        tr.innerHTML = `
+                            <td rowspan="${item.benefits.length}">
+                                <span class="priority-badge priority-${item.priority}">${item.priority}</span>
+                            </td>
+                            <td rowspan="${item.benefits.length}">${item.merit}</td>
+                            <td rowspan="${item.benefits.length}">${item.meritCategory}</td>
+                            <td>${benefit.content}</td>
+                            <td>${benefit.category}</td>
+                            <td rowspan="${item.benefits.length}" style="text-align: center;">${item.rationale || ''}</td>
+                        `;
+                    } else {
+                        tr.innerHTML = `
+                            <td>${benefit.content}</td>
+                            <td>${benefit.category}</td>
+                        `;
+                    }
+                    
+                    tbody.appendChild(tr);
+                });
+            });
+        }
         
         // サンプル結果表示
         function displaySampleResults(formData) {
