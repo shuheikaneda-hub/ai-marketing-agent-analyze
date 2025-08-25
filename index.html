@@ -536,49 +536,50 @@
 }`;
 
             try {
+                console.log('分析開始 - GAS URL:', GAS_PROXY_URL);
+                console.log('送信するプロンプト長:', meritPrompt.length);
+                
                 // GASプロキシ経由でGemini APIを呼び出し
+                // mode: 'cors'を明示的に指定
                 const response = await fetch(GAS_PROXY_URL, {
                     method: 'POST',
-                    mode: 'no-cors', // CORSを回避
+                    mode: 'cors', // CORSモードを明示的に指定
                     headers: {
-                        'Content-Type': 'text/plain' // no-corsモードではtext/plainのみ
+                        'Content-Type': 'text/plain' // GASはtext/plainを期待
                     },
                     body: JSON.stringify({
                         prompt: meritPrompt
                     })
                 });
-
-                // no-corsモードではresponseの内容を読めないため、
-                // 代わりにfetchのredirectオプションを使用
-                const corsResponse = await fetch(GAS_PROXY_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        prompt: meritPrompt
-                    })
-                });
-
-                if (!corsResponse.ok) {
-                    throw new Error(`API request failed: ${corsResponse.status}`);
+                
+                console.log('レスポンスステータス:', response.status);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('レスポンスエラー:', errorText);
+                    throw new Error(`API request failed: ${response.status}`);
                 }
 
-                const result = await corsResponse.json();
+                const result = await response.json();
+                console.log('GASからの応答:', result);
                 
                 if (!result.success) {
+                    console.error('GAS処理エラー:', result.error);
                     throw new Error(result.error || 'API error');
                 }
                 
                 const resultText = result.data.candidates[0].content.parts[0].text;
+                console.log('Gemini応答テキスト長:', resultText.length);
                 
                 // JSONパース（マークダウンコードブロックを除去）
                 const jsonStr = resultText.replace(/```json\n?|\n?```/g, '').trim();
                 const results = JSON.parse(jsonStr);
+                console.log('パース結果:', results);
                 
                 return results.analysis;
             } catch (error) {
-                console.error('分析エラー:', error);
+                console.error('分析エラーの詳細:', error);
+                console.error('エラースタック:', error.stack);
                 throw error;
             }
         }
@@ -777,7 +778,7 @@
                 toast.classList.remove('show');
             }, 3000);
         }
-
+        
         // デバッグ用：GAS接続テスト
         async function testGASConnection() {
             console.log('GAS接続テスト開始...');
@@ -799,5 +800,3 @@
     </script>
 </body>
 </html>
-
-
