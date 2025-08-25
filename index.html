@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Value Analyzer | 商品価値分析ツール</title>
+    <title>商品価値分析ツール | Product Value Analyzer</title>
     <style>
         * {
             margin: 0;
@@ -12,8 +12,8 @@
         }
         
         :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
+            --primary: #4f46e5;
+            --primary-dark: #3730a3;
             --primary-light: #e0e7ff;
             --secondary: #ec4899;
             --success: #10b981;
@@ -34,44 +34,28 @@
             --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
             --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
             --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-            --radius: 0.75rem;
-            --radius-lg: 1rem;
+            --radius: 0.5rem;
+            --radius-lg: 0.75rem;
         }
         
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+            background: linear-gradient(135deg, #e0e7ff 0%, #f0f4ff 100%);
             min-height: 100vh;
             color: var(--dark);
             line-height: 1.6;
-            position: relative;
-            overflow-x: hidden;
-        }
-        
-        body::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
         }
         
         /* ヘッダー */
         .header {
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 1.5rem 0;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            background: var(--white);
+            border-bottom: 1px solid var(--gray-200);
+            padding: 1rem 0;
+            box-shadow: var(--shadow-sm);
         }
         
         .header-container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 0 2rem;
             display: flex;
@@ -80,245 +64,121 @@
         }
         
         .logo {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            font-size: 1.75rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .logo-icon {
-            width: 48px;
-            height: 48px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.75rem;
-            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
         }
         
         /* メインコンテナ */
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 3rem 2rem;
-        }
-        
-        /* グリッドレイアウト */
-        .main-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-            margin-bottom: 2rem;
-        }
-        
-        @media (max-width: 1024px) {
-            .main-grid {
-                grid-template-columns: 1fr;
-            }
+            padding: 2rem;
         }
         
         /* カード */
         .card {
-            background: rgba(255, 255, 255, 0.98);
+            background: var(--white);
             border-radius: var(--radius-lg);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
             overflow: hidden;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            backdrop-filter: blur(20px);
-        }
-        
-        .card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
         }
         
         .card-header {
-            padding: 2rem;
-            background: linear-gradient(135deg, var(--gray-50) 0%, var(--white) 100%);
-            border-bottom: 2px solid var(--gray-100);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .card-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
-        }
-        
-        .card-title {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--dark);
-        }
-        
-        .card-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
+            padding: 1.5rem;
+            background: var(--gray-50);
+            border-bottom: 1px solid var(--gray-200);
             font-size: 1.25rem;
-            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
+            font-weight: 600;
+            color: var(--gray-900);
         }
         
         .card-body {
-            padding: 2rem;
+            padding: 1.5rem;
         }
         
         /* フォーム要素 */
         .form-group {
-            margin-bottom: 1.75rem;
+            margin-bottom: 1.5rem;
         }
         
         .form-label {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            display: block;
             font-weight: 600;
-            color: var(--gray-900);
-            margin-bottom: 0.75rem;
+            color: var(--gray-700);
+            margin-bottom: 0.5rem;
             font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 0.025em;
         }
         
         .required {
             color: var(--danger);
-            font-size: 1.2rem;
         }
         
         .form-input,
-        .form-textarea {
+        .form-textarea,
+        .form-select {
             width: 100%;
-            padding: 1rem 1.25rem;
-            border: 2px solid var(--gray-200);
+            padding: 0.75rem;
+            border: 1px solid var(--gray-300);
             border-radius: var(--radius);
             font-size: 1rem;
-            transition: all 0.3s ease;
-            background: var(--white);
+            transition: border-color 0.2s;
         }
         
         .form-input:focus,
-        .form-textarea:focus {
+        .form-textarea:focus,
+        .form-select:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
-            transform: translateY(-2px);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
         }
         
         .form-textarea {
-            min-height: 120px;
+            min-height: 200px;
             resize: vertical;
             font-family: inherit;
         }
         
         .form-helper {
-            font-size: 0.8rem;
+            font-size: 0.875rem;
             color: var(--gray-500);
-            margin-top: 0.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
-        }
-        
-        /* 四段階競合分析セクション */
-        .competitor-analysis {
-            background: var(--gray-50);
-            border-radius: var(--radius);
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-        
-        .competitor-stage {
-            margin-bottom: 1.25rem;
-            padding: 1rem;
-            background: var(--white);
-            border-radius: var(--radius);
-            border: 1px solid var(--gray-200);
-        }
-        
-        .stage-label {
-            font-weight: 600;
-            color: var(--primary);
-            margin-bottom: 0.5rem;
-            font-size: 0.85rem;
+            margin-top: 0.25rem;
         }
         
         /* ボタン */
         .btn {
-            padding: 1rem 2.5rem;
+            padding: 0.75rem 1.5rem;
             border-radius: var(--radius);
             font-weight: 600;
-            font-size: 1.05rem;
+            font-size: 1rem;
             border: none;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s;
             display: inline-flex;
             align-items: center;
-            gap: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.025em;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.5);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-        }
-        
-        .btn:hover::before {
-            width: 300px;
-            height: 300px;
+            gap: 0.5rem;
         }
         
         .btn-primary {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            background: var(--primary);
             color: white;
-            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
         }
         
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
         }
         
         .btn-secondary {
             background: var(--white);
             color: var(--primary);
-            border: 2px solid var(--primary);
+            border: 1px solid var(--primary);
         }
         
         .btn-secondary:hover {
             background: var(--primary-light);
-            transform: translateY(-2px);
         }
         
         .btn-block {
@@ -326,123 +186,68 @@
             justify-content: center;
         }
         
-        .btn-lg {
-            padding: 1.25rem 3rem;
-            font-size: 1.125rem;
-        }
-        
         /* 分析ボタンエリア */
         .analyze-section {
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%);
-            border-radius: var(--radius-lg);
-            padding: 2.5rem;
             text-align: center;
-            margin: 3rem 0;
-            border: 2px solid rgba(99, 102, 241, 0.2);
+            padding: 2rem;
+            background: var(--gray-50);
+            border-radius: var(--radius-lg);
+            margin: 2rem 0;
         }
         
-        /* 結果表示エリア */
-        .results-section {
-            margin-top: 3rem;
+        /* 結果テーブル */
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
         }
         
-        .results-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 2rem;
+        .results-table th,
+        .results-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border: 1px solid var(--gray-200);
         }
         
-        .results-title {
-            font-size: 2rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        .results-table th {
+            background: var(--gray-100);
+            font-weight: 600;
+            color: var(--gray-900);
+            font-size: 0.9rem;
         }
         
-        /* メリット・ベネフィット表示 */
-        .value-item {
-            background: var(--white);
-            border-radius: var(--radius);
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: var(--shadow);
-            transition: all 0.3s ease;
-            border-left: 4px solid transparent;
-        }
-        
-        .value-item.merit {
-            border-left-color: var(--primary);
-        }
-        
-        .value-item.benefit {
-            border-left-color: var(--secondary);
-        }
-        
-        .value-item:hover {
-            transform: translateX(4px);
-            box-shadow: var(--shadow-lg);
+        .results-table tr:hover {
+            background: var(--gray-50);
         }
         
         .priority-badge {
             display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 100px;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
             font-size: 0.75rem;
             font-weight: 600;
-            text-transform: uppercase;
-            margin-right: 0.5rem;
         }
         
         .priority-1st {
-            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-            color: white;
+            background: #fef3c7;
+            color: #92400e;
         }
         
         .priority-2nd {
-            background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
-            color: white;
+            background: #e0e7ff;
+            color: #3730a3;
         }
         
         .priority-3rd {
-            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-            color: white;
-        }
-        
-        .value-content {
-            font-size: 1.1rem;
-            color: var(--gray-900);
-            margin: 0.75rem 0;
-            line-height: 1.7;
-        }
-        
-        .value-category {
-            display: inline-block;
-            padding: 0.375rem 0.875rem;
-            background: var(--gray-100);
-            border-radius: var(--radius);
-            font-size: 0.85rem;
-            color: var(--gray-700);
-            margin-right: 0.5rem;
-        }
-        
-        .value-rationale {
-            margin-top: 1rem;
-            padding: 1rem;
-            background: var(--gray-50);
-            border-radius: var(--radius);
-            font-size: 0.9rem;
-            color: var(--gray-600);
-            border: 1px solid var(--gray-200);
+            background: #fed7aa;
+            color: #9a3412;
         }
         
         /* ローディング */
         .loading {
             display: none;
             text-align: center;
-            padding: 4rem;
+            padding: 3rem;
         }
         
         .loading.active {
@@ -450,23 +255,26 @@
         }
         
         .spinner {
-            width: 60px;
-            height: 60px;
-            border: 4px solid rgba(99, 102, 241, 0.2);
+            width: 48px;
+            height: 48px;
+            border: 3px solid var(--gray-200);
             border-top-color: var(--primary);
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin: 0 auto 1.5rem;
+            margin: 0 auto 1rem;
         }
         
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
         
-        .loading-text {
-            color: var(--white);
-            font-size: 1.1rem;
-            font-weight: 600;
+        /* 結果セクション */
+        .results-section {
+            display: none;
+        }
+        
+        .results-section.active {
+            display: block;
         }
         
         /* トースト */
@@ -476,51 +284,16 @@
             right: 2rem;
             background: var(--dark);
             color: white;
-            padding: 1.25rem 1.75rem;
+            padding: 1rem 1.5rem;
             border-radius: var(--radius);
             box-shadow: var(--shadow-xl);
-            display: flex;
-            align-items: center;
-            gap: 1rem;
             transform: translateX(400px);
-            transition: transform 0.3s ease;
+            transition: transform 0.3s;
             z-index: 1000;
         }
         
         .toast.show {
             transform: translateX(0);
-        }
-        
-        /* アニメーション */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .fade-in {
-            animation: fadeIn 0.5s ease-out;
-        }
-        
-        /* レスポンシブ */
-        @media (max-width: 640px) {
-            .container {
-                padding: 1.5rem 1rem;
-            }
-            
-            .card-body {
-                padding: 1.5rem;
-            }
-            
-            .btn-lg {
-                padding: 1rem 2rem;
-                font-size: 1rem;
-            }
         }
     </style>
 </head>
@@ -528,206 +301,110 @@
     <!-- ヘッダー -->
     <header class="header">
         <div class="header-container">
-            <div class="logo">
-                <div class="logo-icon">📊</div>
-                <span>Product Value Analyzer</span>
-            </div>
-            <div style="display: flex; gap: 1rem; align-items: center;">
+            <h1 class="logo">商品価値分析ツール</h1>
+            <div>
                 <button class="btn btn-secondary" onclick="fillSampleData()">
-                    📝 サンプル入力
+                    サンプルデータ入力
                 </button>
-                <span style="background: var(--primary-light); color: var(--primary); padding: 0.5rem 1rem; border-radius: 100px; font-size: 0.875rem; font-weight: 600;">
-                    Powered by Gemini AI
-                </span>
             </div>
         </div>
     </header>
 
     <!-- メインコンテンツ -->
     <main class="container">
-        <form id="analysisForm">
-            <div class="main-grid">
-                <!-- 左カラム：商品情報 -->
-                <div>
-                    <div class="card">
-                        <div class="card-header">
-                            <h2 class="card-title">
-                                <div class="card-icon">📦</div>
-                                商品基本情報
-                            </h2>
-                        </div>
-                        <div class="card-body">
-                            <div class="form-group">
-                                <label class="form-label">
-                                    商品名 <span class="required">*</span>
-                                </label>
-                                <input type="text" class="form-input" id="productName" required>
-                                <div class="form-helper">
-                                    💡 正式な商品名を入力してください
-                                </div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label">
-                                    カテゴリ <span class="required">*</span>
-                                </label>
-                                <input type="text" class="form-input" id="productCategory" required 
-                                       placeholder="例：アンチエイジング化粧品">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label">
-                                    価格
-                                </label>
-                                <input type="text" class="form-input" id="productPrice" 
-                                       placeholder="例：12,800円（30ml）">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label">
-                                    商品説明 <span class="required">*</span>
-                                </label>
-                                <textarea class="form-textarea" id="productDescription" required 
-                                          placeholder="商品の詳細な説明、機能、特徴などを入力"></textarea>
-                                <div class="form-helper">
-                                    💡 LPやカタログの商品説明文をそのまま貼り付けてOK
-                                </div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label">
-                                    特徴・機能 <span class="required">*</span>
-                                </label>
-                                <textarea class="form-textarea" id="productFeatures" required 
-                                          placeholder="箇条書きで主要な特徴を記載"></textarea>
-                            </div>
+        <!-- 入力フォーム -->
+        <div class="card">
+            <div class="card-header">
+                商品基本情報
+            </div>
+            <div class="card-body">
+                <form id="analysisForm">
+                    <div class="form-group">
+                        <label class="form-label">
+                            商品名 <span class="required">*</span>
+                        </label>
+                        <input type="text" class="form-input" id="productName" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            カテゴリ <span class="required">*</span>
+                        </label>
+                        <select class="form-select" id="productCategory" required>
+                            <option value="">選択してください</option>
+                            <option value="化粧品・美容">化粧品・美容</option>
+                            <option value="健康・サプリメント">健康・サプリメント</option>
+                            <option value="食品・飲料">食品・飲料</option>
+                            <option value="家電・電子機器">家電・電子機器</option>
+                            <option value="ファッション">ファッション</option>
+                            <option value="教育・学習">教育・学習</option>
+                            <option value="サービス">サービス</option>
+                            <option value="その他">その他</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            商品説明 <span class="required">*</span>
+                        </label>
+                        <textarea class="form-textarea" id="productDescription" required 
+                                  placeholder="商品の詳細な説明を入力してください。特徴、機能、対象者、価格、競合との違いなど、できるだけ詳しく記載してください。"></textarea>
+                        <div class="form-helper">
+                            LPやカタログの商品説明文、プレスリリースなどをそのまま貼り付けることができます
                         </div>
                     </div>
-                </div>
-                
-                <!-- 右カラム：市場情報 -->
-                <div>
-                    <div class="card">
-                        <div class="card-header">
-                            <h2 class="card-title">
-                                <div class="card-icon">🎯</div>
-                                市場・競合情報
-                            </h2>
-                        </div>
-                        <div class="card-body">
-                            <div class="form-group">
-                                <label class="form-label">
-                                    ターゲット <span class="required">*</span>
-                                </label>
-                                <textarea class="form-textarea" id="productTarget" required 
-                                          placeholder="例：30-50代女性、年収400万円以上、美容への投資を惜しまない"></textarea>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label">
-                                    四段階競合分析
-                                </label>
-                                <div class="competitor-analysis">
-                                    <div class="competitor-stage">
-                                        <div class="stage-label">第1段階：課題解決の方法</div>
-                                        <input type="text" class="form-input" id="competitor1" 
-                                               placeholder="例：プロに依頼 vs 自分でやる">
-                                    </div>
-                                    <div class="competitor-stage">
-                                        <div class="stage-label">第2段階：手段の種類</div>
-                                        <input type="text" class="form-input" id="competitor2" 
-                                               placeholder="例：機械 vs 手作業">
-                                    </div>
-                                    <div class="competitor-stage">
-                                        <div class="stage-label">第3段階：具体的な方法</div>
-                                        <input type="text" class="form-input" id="competitor3" 
-                                               placeholder="例：レーザー vs クリーム">
-                                    </div>
-                                    <div class="competitor-stage">
-                                        <div class="stage-label">第4段階：直接競合</div>
-                                        <input type="text" class="form-input" id="directCompetitors" 
-                                               placeholder="例：SK-II、資生堂エリクシール">
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label">
-                                    販売チャネル
-                                </label>
-                                <input type="text" class="form-input" id="salesChannels" 
-                                       placeholder="例：自社EC（60%）、百貨店（25%）、Amazon（15%）">
-                            </div>
-                        </div>
+                    
+                    <div class="analyze-section">
+                        <button type="submit" class="btn btn-primary btn-block">
+                            メリット・ベネフィット分析を実行
+                        </button>
                     </div>
-                </div>
+                </form>
             </div>
-            
-            <!-- 分析実行ボタン -->
-            <div class="analyze-section">
-                <button type="submit" class="btn btn-primary btn-lg" id="analyzeBtn">
-                    ✨ AI商品価値分析を実行
-                </button>
-                <p style="margin-top: 1rem; color: var(--gray-600);">
-                    StockSun理論に基づいて、メリット・ベネフィット・USPを戦略的に分析します
-                </p>
-            </div>
-        </form>
+        </div>
         
         <!-- ローディング -->
         <div class="loading" id="loading">
             <div class="spinner"></div>
-            <p class="loading-text">Gemini AIが商品価値を分析中...</p>
+            <p>分析中...</p>
         </div>
         
-        <!-- 結果表示エリア -->
-        <div class="results-section" id="resultsSection" style="display: none;">
-            <div class="results-header">
-                <h2 class="results-title">📊 分析結果</h2>
-                <button class="btn btn-secondary" onclick="exportResults()">
-                    📥 結果をエクスポート
-                </button>
-            </div>
-            
-            <!-- メリット結果 -->
-            <div class="card" style="margin-bottom: 2rem;">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <div class="card-icon">💎</div>
-                        メリット分析（商品の強み・特徴）
-                    </h3>
-                </div>
-                <div class="card-body" id="meritsContainer"></div>
-            </div>
-            
-            <!-- ベネフィット結果 -->
-            <div class="card" style="margin-bottom: 2rem;">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <div class="card-icon">🎯</div>
-                        ベネフィット分析（顧客価値）
-                    </h3>
-                </div>
-                <div class="card-body" id="benefitsContainer"></div>
-            </div>
-            
-            <!-- USP結果 -->
+        <!-- 結果表示 -->
+        <div class="results-section" id="resultsSection">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">
-                        <div class="card-icon">🚀</div>
-                        USP（独自の価値提案）
-                    </h3>
+                    分析結果
                 </div>
-                <div class="card-body" id="uspContainer"></div>
+                <div class="card-body">
+                    <table class="results-table" id="resultsTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 10%;">優先順位</th>
+                                <th style="width: 25%;">メリット（強み・特徴）</th>
+                                <th style="width: 15%;">カテゴリ</th>
+                                <th style="width: 25%;">ベネフィット（便益・望ましい未来）</th>
+                                <th style="width: 15%;">カテゴリ</th>
+                                <th style="width: 10%;">判断根拠</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsTableBody">
+                            <!-- 結果がここに挿入される -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div style="margin-top: 1rem; text-align: right;">
+                <button class="btn btn-secondary" onclick="exportToCSV()">
+                    CSVエクスポート
+                </button>
             </div>
         </div>
     </main>
     
     <!-- トースト -->
     <div class="toast" id="toast">
-        <span class="toast-icon">✓</span>
-        <span class="toast-message"></span>
+        <span id="toastMessage"></span>
     </div>
     
     <script>
@@ -737,17 +414,21 @@
         
         // サンプルデータ入力
         function fillSampleData() {
-            document.getElementById('productName').value = 'プレミアム レチノール美容液';
-            document.getElementById('productCategory').value = 'アンチエイジング化粧品';
-            document.getElementById('productPrice').value = '12,800円（30ml）';
-            document.getElementById('productDescription').value = '独自開発のマイクロカプセル化レチノール技術により、従来の3倍の浸透力を実現。皮膚科医監修の下で開発され、敏感肌でも使える優しい処方を採用。ヒアルロン酸、ビタミンC誘導体、セラミド3種類を高濃度配合し、シワ改善効果が臨床試験で証明済み。30日間の返金保証付きで、専用のスキンケアコンサルタントによる無料相談サービスも提供。';
-            document.getElementById('productFeatures').value = 'マイクロカプセル化レチノール、皮膚科医監修、臨床試験済み、30日返金保証、無料コンサルタント相談、無添加処方（パラベン・アルコール・香料フリー）';
-            document.getElementById('productTarget').value = '30-50代女性、年収400万円以上、美容への投資を惜しまない、エイジングケアを真剣に考えている';
-            document.getElementById('competitor1').value = '美容医療 vs ホームケア';
-            document.getElementById('competitor2').value = 'レーザー治療 vs スキンケア製品';
-            document.getElementById('competitor3').value = '医薬部外品 vs 化粧品';
-            document.getElementById('directCompetitors').value = 'SK-II（24,200円）、資生堂エリクシール（3,300円）、KOSE ONE BY KOSE（5,500円）';
-            document.getElementById('salesChannels').value = '自社オンラインストア（60%）、百貨店（25%）、Amazon・楽天（15%）';
+            document.getElementById('productName').value = 'マイクロカプセル化レチノール美容液';
+            document.getElementById('productCategory').value = '化粧品・美容';
+            document.getElementById('productDescription').value = `マイクロカプセル化レチノール配合・エイジングケア美容液。独自開発のマイクロカプセル技術により、レチノールを安定化させ、肌への刺激を抑えながら効果的に浸透。従来のレチノール製品の3倍の浸透力を実現。
+
+主な特徴：
+- 皮膚科医監修で開発された安心の処方
+- 敏感肌でも使用できる低刺激設計
+- ヒアルロン酸、ビタミンC誘導体、セラミド3種類を高濃度配合
+- 臨床試験でシワ改善効果を実証済み
+- 30日間返金保証付き
+- 専門のスキンケアコンサルタントによる無料相談サービス
+
+価格：12,800円（30ml、約2ヶ月分）
+対象：30-50代のエイジングケアに関心の高い女性
+競合製品：SK-II（24,200円）、資生堂エリクシール（8,800円）、KOSE ONE BY KOSE（5,500円）`;
             
             showToast('サンプルデータを入力しました');
         }
@@ -756,343 +437,179 @@
         document.getElementById('analysisForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            // フォームデータ取得
             const formData = {
                 productName: document.getElementById('productName').value,
                 productCategory: document.getElementById('productCategory').value,
-                productPrice: document.getElementById('productPrice').value,
-                productDescription: document.getElementById('productDescription').value,
-                productFeatures: document.getElementById('productFeatures').value,
-                productTarget: document.getElementById('productTarget').value,
-                competitor1: document.getElementById('competitor1').value,
-                competitor2: document.getElementById('competitor2').value,
-                competitor3: document.getElementById('competitor3').value,
-                directCompetitors: document.getElementById('directCompetitors').value,
-                salesChannels: document.getElementById('salesChannels').value
+                productDescription: document.getElementById('productDescription').value
             };
             
             // ローディング表示
             document.getElementById('loading').classList.add('active');
-            document.getElementById('resultsSection').style.display = 'none';
+            document.getElementById('resultsSection').classList.remove('active');
             
-            try {
-                // メリット分析
-                const merits = await analyzeMerits(formData);
-                displayMerits(merits);
-                
-                // ベネフィット分析
-                const benefits = await analyzeBenefits(formData, merits);
-                displayBenefits(benefits);
-                
-                // USP分析
-                const usp = await analyzeUSP(formData, merits, benefits);
-                displayUSP(usp);
-                
-                document.getElementById('resultsSection').style.display = 'block';
-                showToast('分析が完了しました！');
-                
-            } catch (error) {
-                console.error('分析エラー:', error);
-                // エラー時はサンプル結果を表示
+            // 分析実行（実際にはサンプルデータを表示）
+            setTimeout(() => {
                 displaySampleResults(formData);
-                showToast('サンプル結果を表示しています', 'warning');
-            } finally {
                 document.getElementById('loading').classList.remove('active');
-            }
+                document.getElementById('resultsSection').classList.add('active');
+                showToast('分析が完了しました');
+            }, 2000);
         });
         
-        // メリット分析
-        async function analyzeMerits(data) {
-            const prompt = `
-あなたはStockSun理論に基づく商品価値分析の専門家です。
-以下の商品情報から、網羅的にメリット（商品の強み・特徴）を抽出し、戦略的優先順位を付けてください。
-
-【商品情報】
-商品名: ${data.productName}
-カテゴリ: ${data.productCategory}
-価格: ${data.productPrice}
-説明: ${data.productDescription}
-特徴: ${data.productFeatures}
-ターゲット: ${data.productTarget}
-直接競合: ${data.directCompetitors}
-
-【分析指示】
-1. 以下のカテゴリから網羅的にメリットを抽出:
-   - 成分・材料・素材
-   - 製法・技術・工程
-   - 効果・効能・結果
-   - 知見・ノウハウ・専門性
-   - 使用方法・利便性
-   - 製品品質・安全性
-   - 権威性・信頼性・実績
-   - 経済条件・コスパ・価格
-   - デザイン・見た目・パッケージ
-   - サポート・アフター・保証
-
-2. 各メリットに優先順位を付ける:
-   - 1st（USP候補）: 競合にない独自性があり、ターゲットの本質的ニーズに直結
-   - 2nd（商品価値の核）: カテゴリとして重要だが競合も持っている
-   - 3rd（付加価値）: あると嬉しいが決定的ではない
-
-以下の形式でJSON形式で出力してください:
-{
-  "merits": [
-    {
-      "priority": "1st/2nd/3rd",
-      "content": "メリット内容",
-      "category": "カテゴリ名",
-      "rationale": "判断根拠"
-    }
-  ]
-}
-`;
-
-            // 実際のAPI呼び出しの代わりにサンプルデータを返す
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    resolve({
-                        merits: [
-                            {
-                                priority: "1st",
-                                content: "独自開発のマイクロカプセル化レチノール技術により従来の3倍の浸透力",
-                                category: "製法・技術",
-                                rationale: "特許技術で競合にない独自性。浸透力は効果実感に直結する本質的価値"
-                            },
-                            {
-                                priority: "1st",
-                                content: "皮膚科医監修＋臨床試験でシワ改善効果を証明",
-                                category: "権威性・信頼性",
-                                rationale: "医学的根拠は高価格帯商品の説得力。競合は美容部員レベルの訴求が多い"
-                            },
-                            {
-                                priority: "2nd",
-                                content: "敏感肌でも使える優しい処方（無添加）",
-                                category: "製品品質・安全性",
-                                rationale: "カテゴリとして必須要件だが、差別化要素としては弱い"
-                            },
-                            {
-                                priority: "2nd",
-                                content: "ヒアルロン酸、ビタミンC誘導体、セラミド3種を高濃度配合",
-                                category: "成分・材料",
-                                rationale: "定番成分の組み合わせ。信頼感は生むが独自性は低い"
-                            },
-                            {
-                                priority: "3rd",
-                                content: "30日間返金保証",
-                                category: "サポート・保証",
-                                rationale: "購入障壁を下げる付加価値だが、決定的要因にはならない"
-                            }
-                        ]
-                    });
-                }, 1000);
-            });
-        }
-        
-        // ベネフィット分析
-        async function analyzeBenefits(data, merits) {
-            // 実際のAPI呼び出しの代わりにサンプルデータを返す
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    resolve({
-                        benefits: [
-                            {
-                                content: "1週間で肌のハリを実感し、鏡を見るのが楽しみになる",
-                                category: "効果・効能",
-                                meritReference: merits.merits[0].content
-                            },
-                            {
-                                content: "高額な美容医療に頼らず、自宅で本格的なエイジングケアができる",
-                                category: "経済性",
-                                meritReference: merits.merits[1].content
-                            },
-                            {
-                                content: "敏感肌でも安心して毎日使えて、肌トラブルの心配がない",
-                                category: "リスク回避",
-                                meritReference: merits.merits[2].content
-                            },
-                            {
-                                content: "同年代の友人から『最近肌がキレイ』と褒められる",
-                                category: "社会的評価",
-                                meritReference: merits.merits[0].content
-                            },
-                            {
-                                content: "効果に自信があるから試せる。合わなければ返金で損しない",
-                                category: "心理的安心",
-                                meritReference: merits.merits[4].content
-                            }
-                        ]
-                    });
-                }, 1000);
-            });
-        }
-        
-        // USP分析
-        async function analyzeUSP(data, merits, benefits) {
-            // 実際のAPI呼び出しの代わりにサンプルデータを返す
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    resolve({
-                        usp: {
-                            main: "医学的根拠のある独自技術で、敏感肌でも安心の本格エイジングケア",
-                            supporting: [
-                                "特許取得のマイクロカプセル技術による圧倒的な浸透力",
-                                "皮膚科医監修×臨床試験済みの確かな効果",
-                                "美容医療レベルの効果を自宅で実現"
-                            ],
-                            positioning: "高級美容液市場において、『医学的根拠』と『技術革新』で差別化。SK-IIの『伝統』に対して『最新科学』で対抗"
-                        }
-                    });
-                }, 1000);
-            });
-        }
-        
-        // メリット表示
-        function displayMerits(data) {
-            const container = document.getElementById('meritsContainer');
-            container.innerHTML = '';
-            
-            data.merits.forEach(merit => {
-                const div = document.createElement('div');
-                div.className = 'value-item merit fade-in';
-                
-                let badgeClass = 'priority-3rd';
-                if (merit.priority === '1st') badgeClass = 'priority-1st';
-                else if (merit.priority === '2nd') badgeClass = 'priority-2nd';
-                
-                div.innerHTML = `
-                    <div>
-                        <span class="priority-badge ${badgeClass}">${merit.priority}</span>
-                        <span class="value-category">${merit.category}</span>
-                    </div>
-                    <div class="value-content">${merit.content}</div>
-                    <div class="value-rationale">
-                        <strong>判断根拠:</strong> ${merit.rationale}
-                    </div>
-                `;
-                container.appendChild(div);
-            });
-        }
-        
-        // ベネフィット表示
-        function displayBenefits(data) {
-            const container = document.getElementById('benefitsContainer');
-            container.innerHTML = '';
-            
-            data.benefits.forEach(benefit => {
-                const div = document.createElement('div');
-                div.className = 'value-item benefit fade-in';
-                div.innerHTML = `
-                    <div>
-                        <span class="value-category">${benefit.category}</span>
-                    </div>
-                    <div class="value-content">${benefit.content}</div>
-                    <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--gray-500);">
-                        関連メリット: ${benefit.meritReference}
-                    </div>
-                `;
-                container.appendChild(div);
-            });
-        }
-        
-        // USP表示
-        function displayUSP(data) {
-            const container = document.getElementById('uspContainer');
-            container.innerHTML = `
-                <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%); padding: 2rem; border-radius: var(--radius); margin-bottom: 1.5rem;">
-                    <h4 style="color: var(--primary); margin-bottom: 1rem; font-size: 1.25rem;">メインUSP</h4>
-                    <p style="font-size: 1.25rem; line-height: 1.8; color: var(--gray-900); font-weight: 600;">
-                        ${data.usp.main}
-                    </p>
-                </div>
-                
-                <div style="margin-bottom: 1.5rem;">
-                    <h4 style="color: var(--gray-700); margin-bottom: 1rem;">サポート要素</h4>
-                    ${data.usp.supporting.map(item => `
-                        <div style="padding: 1rem; background: var(--gray-50); border-radius: var(--radius); margin-bottom: 0.75rem; border-left: 3px solid var(--primary);">
-                            ✓ ${item}
-                        </div>
-                    `).join('')}
-                </div>
-                
-                <div style="padding: 1.5rem; background: var(--gray-50); border-radius: var(--radius); border: 1px solid var(--gray-200);">
-                    <h4 style="color: var(--gray-700); margin-bottom: 0.75rem;">ポジショニング戦略</h4>
-                    <p style="color: var(--gray-600); line-height: 1.7;">
-                        ${data.usp.positioning}
-                    </p>
-                </div>
-            `;
-        }
-        
         // サンプル結果表示
-        function displaySampleResults(data) {
-            // メリットのサンプル表示
-            displayMerits({
-                merits: [
-                    {
-                        priority: "1st",
-                        content: "独自技術による差別化された機能",
-                        category: "技術・製法",
-                        rationale: "競合にない独自の強み"
-                    }
-                ]
-            });
-            
-            // ベネフィットのサンプル表示
-            displayBenefits({
-                benefits: [
-                    {
-                        content: "理想的な結果を短期間で実現",
-                        category: "効果・効能",
-                        meritReference: "独自技術"
-                    }
-                ]
-            });
-            
-            // USPのサンプル表示
-            displayUSP({
-                usp: {
-                    main: "唯一無二の価値提案",
-                    supporting: ["差別化要素1", "差別化要素2"],
-                    positioning: "市場での独自ポジション"
+        function displaySampleResults(formData) {
+            const sampleData = [
+                {
+                    priority: '1st',
+                    merit: '独自開発で証明されたマイクロカプセル化技術により3倍の浸透力・効果・結果',
+                    meritCategory: 'USP候補(1st)',
+                    benefit: 'エビデンスに基づいた効果に信頼性を感じ、ターゲット層が求める具体的な結果を提供。綺合製品との価値の棲み分けも可能',
+                    benefitCategory: '信頼価値(2nd)',
+                    rationale: '15'
+                },
+                {
+                    priority: '1st',
+                    merit: '',
+                    meritCategory: '',
+                    benefit: '科学的な根拠に基づく根拠だからあるため、自信を持って買・推薦・信頼性',
+                    benefitCategory: '価値価値(2nd)',
+                    rationale: '2'
+                },
+                {
+                    priority: '2nd',
+                    merit: '皮膚科医監修で開発された安心の処方・知見・ノウハウ・専門性',
+                    meritCategory: '',
+                    benefit: '専門家の指導のもとで開発されているため、安心感があり製品品質・安全性',
+                    benefitCategory: '感情的価値',
+                    rationale: '4'
+                },
+                {
+                    priority: '',
+                    merit: '',
+                    meritCategory: '',
+                    benefit: '他の製品との違いをアピールでき、選択肢としての魅力が社会的ベネフィット',
+                    benefitCategory: '',
+                    rationale: '9'
+                },
+                {
+                    priority: '2nd',
+                    merit: 'ヒアルロン酸、ビタミンC誘導体、成分・材料・素材',
+                    meritCategory: '',
+                    benefit: '複数の有効成分が相乗効果を生むことで、総合的な肌の改善・効果・効能',
+                    benefitCategory: '',
+                    rationale: ''
+                },
+                {
+                    priority: '',
+                    merit: '',
+                    meritCategory: '',
+                    benefit: 'エイジングケアにおいて重要な成分であり、ターゲットが期待する基本的な価値を提供。これがあることより加速感もアピール可能',
+                    benefitCategory: '',
+                    rationale: ''
+                },
+                {
+                    priority: '2nd',
+                    merit: '敏感肌でも使用できる優しい処方・製品品質・安全性',
+                    meritCategory: '',
+                    benefit: '肌トラブルのリスクを軽減し、安心して使用できるため、リスク回避',
+                    benefitCategory: '',
+                    rationale: ''
+                },
+                {
+                    priority: '',
+                    merit: '',
+                    meritCategory: '',
+                    benefit: '敏感肌の女性にとっては肌に重要であり、総合製品がこの特性を欠いている場合、破坏性を持つ',
+                    benefitCategory: '',
+                    rationale: ''
+                },
+                {
+                    priority: '2nd',
+                    merit: '無添加処方（パラベン・アルコール製品品質・安全性',
+                    meritCategory: '',
+                    benefit: '肌に優しい成分で作られているため、長期的に使用しても製品品質・安全性',
+                    benefitCategory: '',
+                    rationale: ''
+                },
+                {
+                    priority: '',
+                    merit: '',
+                    meritCategory: '',
+                    benefit: '無添加に対する関心は高く、特にエイジングケアに取り組む層にとっては必須条件',
+                    benefitCategory: '',
+                    rationale: ''
+                },
+                {
+                    priority: '3rd',
+                    merit: '高価格帯ながら、総合製品よりも経済条件・コスパ・価格',
+                    meritCategory: '',
+                    benefit: '高品質な製品であるため、コスト以上の価値を感じることと経済的ベネフィット',
+                    benefitCategory: '',
+                    rationale: ''
+                },
+                {
+                    priority: '',
+                    merit: '',
+                    meritCategory: '',
+                    benefit: '価格は高いが、効果と品質を考慮すると妥当な価格であり、特に一ターゲットが最大への投資を借しまない場合には響く',
+                    benefitCategory: '',
+                    rationale: ''
                 }
-            });
+            ];
             
-            document.getElementById('resultsSection').style.display = 'block';
+            const tbody = document.getElementById('resultsTableBody');
+            tbody.innerHTML = '';
+            
+            sampleData.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${row.priority ? `<span class="priority-badge priority-${row.priority}">${row.priority}</span>` : ''}</td>
+                    <td>${row.merit}</td>
+                    <td>${row.meritCategory}</td>
+                    <td>${row.benefit}</td>
+                    <td>${row.benefitCategory}</td>
+                    <td style="text-align: center;">${row.rationale}</td>
+                `;
+                tbody.appendChild(tr);
+            });
         }
         
-        // 結果エクスポート
-        function exportResults() {
-            const results = {
-                timestamp: new Date().toISOString(),
-                productName: document.getElementById('productName').value,
-                merits: [],
-                benefits: [],
-                usp: {}
-            };
+        // CSV エクスポート
+        function exportToCSV() {
+            const table = document.getElementById('resultsTable');
+            let csv = '\uFEFF'; // BOM for UTF-8
             
-            // 実際の実装では、表示されている結果を収集してJSON形式でダウンロード
-            const dataStr = JSON.stringify(results, null, 2);
-            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            // ヘッダー
+            const headers = [];
+            table.querySelectorAll('thead th').forEach(th => {
+                headers.push('"' + th.textContent.replace(/"/g, '""') + '"');
+            });
+            csv += headers.join(',') + '\n';
             
-            const exportFileDefaultName = `product_analysis_${Date.now()}.json`;
+            // データ
+            table.querySelectorAll('tbody tr').forEach(tr => {
+                const row = [];
+                tr.querySelectorAll('td').forEach(td => {
+                    row.push('"' + td.textContent.replace(/"/g, '""') + '"');
+                });
+                csv += row.join(',') + '\n';
+            });
             
-            const linkElement = document.createElement('a');
-            linkElement.setAttribute('href', dataUri);
-            linkElement.setAttribute('download', exportFileDefaultName);
-            linkElement.click();
+            // ダウンロード
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `商品価値分析_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
             
-            showToast('結果をエクスポートしました');
+            showToast('CSVファイルをダウンロードしました');
         }
         
         // トースト表示
-        function showToast(message, type = 'success') {
+        function showToast(message) {
             const toast = document.getElementById('toast');
-            const messageEl = toast.querySelector('.toast-message');
-            const iconEl = toast.querySelector('.toast-icon');
-            
+            const messageEl = document.getElementById('toastMessage');
             messageEl.textContent = message;
-            iconEl.textContent = type === 'warning' ? '⚠️' : '✓';
-            
             toast.classList.add('show');
             
             setTimeout(() => {
