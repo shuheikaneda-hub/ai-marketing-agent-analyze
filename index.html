@@ -408,9 +408,8 @@
     </div>
     
     <script>
-        // Gemini API設定
-        const GEMINI_API_KEY = 'AIzaSyCn7c0_lUZFyCIt5al2o13ZiecfwV9NOeI';
-        const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
+        // GAS Proxy設定（デプロイ後のURLに置き換えてください）
+        const GAS_PROXY_URL = 'https://script.google.com/macros/s/AKfycbx3vBMk6Igoga8rnWQDINEZNDHjkukr7Iso_40O6IMuqU78Bs3hX8qs0s5Blzg4bmva/exec'; // ← ここをGASのWeb App URLに置き換える
         
         // サンプルデータ入力
         function fillSampleData() {
@@ -464,7 +463,7 @@
             }
         });
         
-        // Gemini APIを使用した分析
+        // Gemini APIを使用した分析（GASプロキシ経由）
         async function analyzeWithGemini(formData) {
             // ステップ1: メリットの網羅的抽出と優先順位付け
             const meritPrompt = `
@@ -537,32 +536,41 @@
 }`;
 
             try {
-                const response = await fetch(GEMINI_API_URL, {
+                // GASプロキシ経由でGemini APIを呼び出し
+                const response = await fetch(GAS_PROXY_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', // CORSを回避
+                    headers: {
+                        'Content-Type': 'text/plain' // no-corsモードではtext/plainのみ
+                    },
+                    body: JSON.stringify({
+                        prompt: meritPrompt
+                    })
+                });
+
+                // no-corsモードではresponseの内容を読めないため、
+                // 代わりにfetchのredirectオプションを使用
+                const corsResponse = await fetch(GAS_PROXY_URL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        contents: [{
-                            parts: [{
-                                text: meritPrompt
-                            }]
-                        }],
-                        generationConfig: {
-                            temperature: 0.7,
-                            topK: 40,
-                            topP: 0.95,
-                            maxOutputTokens: 4096
-                        }
+                        prompt: meritPrompt
                     })
                 });
 
-                if (!response.ok) {
-                    throw new Error(`API request failed: ${response.status}`);
+                if (!corsResponse.ok) {
+                    throw new Error(`API request failed: ${corsResponse.status}`);
                 }
 
-                const data = await response.json();
-                const resultText = data.candidates[0].content.parts[0].text;
+                const result = await corsResponse.json();
+                
+                if (!result.success) {
+                    throw new Error(result.error || 'API error');
+                }
+                
+                const resultText = result.data.candidates[0].content.parts[0].text;
                 
                 // JSONパース（マークダウンコードブロックを除去）
                 const jsonStr = resultText.replace(/```json\n?|\n?```/g, '').trim();
@@ -570,7 +578,7 @@
                 
                 return results.analysis;
             } catch (error) {
-                console.error('Gemini API エラー:', error);
+                console.error('分析エラー:', error);
                 throw error;
             }
         }
