@@ -3,12 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>商品価値分析ツール | Product Value Analyzer</title>
+    <title>商品価値分析＆競合比較統合ツール | Product Value & Competitor Analyzer</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+        // ターゲット分析結果の表示
+        function displayTargetAnalysisResults(data) {
+            if (!data) return;
+            
+            // ペルソナ表示
+            if (data.personas) {
+                const personaContainer = document.getElementById('personaContainer');
+                personaContainer.innerHTML = '';
+                
+                data.personas.forEach(persona => {
+                    const personaCard = document.createElement('div');
+                    personaCard.style.cssText = 'background: #f8f9fa; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;';
+                    
+                    personaCard.innerHTML = `
+                        <h5 style="color: #4f46e5; margin-bottom: 0.5rem;">${persona.name}</h5>
+                        <p style="color: #64748b; font-size: 0.9rem;">${persona.category}</p>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.5rem;">
+                            <div>
+                                <strong>属性情報:</strong>
+                                <ul style="margin: 0.25rem 0; padding-left: 1.5rem; font-size: 0.9rem;">
+                                    ${Object.entries(persona.demographics || {}).map(([key, value]) => 
+                                        `<li>${key}: ${value}</li>`
+                                    ).join('')}
+                                </ul>
+                            </div>
+                            <div>
+                                <strong>心理情報:</strong>
+                                <ul style="margin: 0.25rem 0; padding-left: 1.5rem; font-size: 0.9rem;">
+                                    ${Object.entries(persona.psychographics || {}).map(([key, value]) => 
+                                        `<li>${key}: ${value}</li>`
+                                    ).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                    `;
+                    
+                    personaContainer.appendChild(personaCard);
+                });
+            }
+            
+            // インサイト表示
+            if (data.insights) {
+                const tbody = document.getElementById('insightTableBody');
+                tbody.innerHTML = '';
+                
+                data.insights.forEach(insight => {
+                    const tr = document.createElement('tr');
+                    
+                    const priorityClass = {
+                        '高': 'priority-high',
+                        '中': 'priority-medium',
+                        '低': 'priority-low'
+                    }[insight.priority] || 'priority-low';
+                    
+                    tr.innerHTML = `
+                        <td>${insight.category}</td>
+                        <td>${insight.desireLevel}</td>
+                        <td><span class="usp-priority ${priorityClass}">${insight.priority}</span></td>
+                        <td>${insight.insight}</td>
+                        <td>${insight.keyword}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+        }
+        
+        // 訴求軸・コンセプト分析結果の表示
+        function displayAppealAnalysisResults(data) {
+            if (!data) return;
+            
+            // 推奨コンセプト
+            if (data.recommendedConcept) {
+                document.getElementById('conceptRecommendation').innerHTML = `
+                    <h4>${data.recommendedConcept.title}</h4>
+                    <p style="margin-top: 0.5rem;">${data.recommendedConcept.description}</p>
+                    <p style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;">
+                        <strong>選定理由：</strong> ${data.recommendedConcept.reasoning || ''}
+                    </p>
+                `;
+            }
+            
+            // 訴求軸候補
+            if (data.appealAxes) {
+                const tbody = document.getElementById('appealTableBody');
+                tbody.innerHTML = '';
+                
+                data.appealAxes.forEach(appeal => {
+                    const tr = document.createElement('tr');
+                    
+                    const priorityClass = {
+                        '高': 'priority-high',
+                        '中': 'priority-medium',
+                        '低': 'priority-low'
+                    }[appeal.priority] || 'priority-low';
+                    
+                    tr.innerHTML = `
+                        <td><span class="usp-priority ${priorityClass}">${appeal.priority}</span></td>
+                        <td>${appeal.targetInsight}</td>
+                        <td>${appeal.appealAxis}</td>
+                        <td>${appeal.appealContent}</td>
+                        <td>${appeal.totalScore || '-'}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
         }
         
         :root {
@@ -40,7 +145,7 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
-            background: linear-gradient(135deg, #e0e7ff 0%, #f0f4ff 100%);
+            background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%);
             min-height: 100vh;
             color: var(--dark);
             line-height: 1.6;
@@ -48,10 +153,10 @@
         
         /* ヘッダー */
         .header {
-            background: var(--white);
-            border-bottom: 1px solid var(--gray-200);
-            padding: 1rem 0;
-            box-shadow: var(--shadow-sm);
+            background: transparent;
+            padding: 1.5rem 0;
+            position: relative;
+            z-index: 10;
         }
         
         .header-container {
@@ -61,12 +166,17 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
         
         .logo {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary);
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: #0097a7;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.05);
         }
         
         /* メインコンテナ */
@@ -80,15 +190,15 @@
         .card {
             background: var(--white);
             border-radius: var(--radius-lg);
-            box-shadow: var(--shadow);
+            box-shadow: var(--shadow-lg);
             margin-bottom: 2rem;
             overflow: hidden;
         }
         
         .card-header {
             padding: 1.5rem;
-            background: var(--gray-50);
-            border-bottom: 1px solid var(--gray-200);
+            background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);
+            border-bottom: 2px solid #00acc1;
             font-size: 1.25rem;
             font-weight: 600;
             color: var(--gray-900);
@@ -115,6 +225,12 @@
             color: var(--danger);
         }
         
+        .optional {
+            color: var(--gray-500);
+            font-weight: normal;
+            font-size: 0.875rem;
+        }
+        
         .form-input,
         .form-textarea,
         .form-select {
@@ -135,7 +251,7 @@
         }
         
         .form-textarea {
-            min-height: 200px;
+            min-height: 150px;
             resize: vertical;
             font-family: inherit;
         }
@@ -161,24 +277,26 @@
         }
         
         .btn-primary {
-            background: var(--primary);
+            background: linear-gradient(135deg, #00bcd4 0%, #00acc1 100%);
             color: white;
+            box-shadow: 0 2px 4px rgba(0, 172, 193, 0.3);
         }
         
         .btn-primary:hover {
-            background: var(--primary-dark);
+            background: linear-gradient(135deg, #00acc1 0%, #0097a7 100%);
             transform: translateY(-1px);
             box-shadow: var(--shadow-md);
         }
         
         .btn-secondary {
             background: var(--white);
-            color: var(--primary);
-            border: 1px solid var(--primary);
+            color: #00acc1;
+            border: 2px solid #00acc1;
         }
         
         .btn-secondary:hover {
-            background: var(--primary-light);
+            background: #e0f7fa;
+            border-color: #0097a7;
         }
         
         .btn-block {
@@ -190,9 +308,47 @@
         .analyze-section {
             text-align: center;
             padding: 2rem;
-            background: var(--gray-50);
+            background: linear-gradient(135deg, #b2ebf2 0%, #80deea 100%);
             border-radius: var(--radius-lg);
             margin: 2rem 0;
+            border: 2px solid #00acc1;
+        }
+        
+        /* ローディング */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 3rem;
+        }
+        
+        .loading.active {
+            display: block;
+        }
+        
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid var(--gray-200);
+            border-top-color: transparent;
+            border-right-color: #667eea;
+            border-bottom-color: transparent;
+            border-left-color: #764ba2;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* 結果セクション */
+        .results-section {
+            display: none;
+        }
+        
+        .results-section.active {
+            display: block;
         }
         
         /* 結果テーブル */
@@ -220,6 +376,7 @@
             background: var(--gray-50);
         }
         
+        /* 優先順位バッジ */
         .priority-badge {
             display: inline-block;
             padding: 0.25rem 0.5rem;
@@ -243,38 +400,56 @@
             color: #9a3412;
         }
         
-        /* ローディング */
-        .loading {
-            display: none;
+        /* 競合ランクバッジ */
+        .rank-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .rank-micro { background: #fef3c7; color: #92400e; }
+        .rank-small { background: #e0e7ff; color: #3730a3; }
+        .rank-medium { background: #dcfce7; color: #166534; }
+        .rank-large { background: #fee2e2; color: #991b1b; }
+        
+        /* 評価 */
+        .rating {
+            font-weight: 600;
             text-align: center;
-            padding: 3rem;
         }
         
-        .loading.active {
-            display: block;
+        .rating-excellent { color: var(--success); }
+        .rating-good { color: var(--primary); }
+        .rating-average { color: var(--warning); }
+        .rating-poor { color: var(--danger); }
+        
+        /* USP優先度 */
+        .usp-priority {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+            font-weight: 600;
         }
         
-        .spinner {
-            width: 48px;
-            height: 48px;
-            border: 3px solid var(--gray-200);
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 1rem;
+        .priority-high { background: #fee2e2; color: #991b1b; }
+        .priority-medium { background: #fef3c7; color: #92400e; }
+        .priority-low { background: #dcfce7; color: #166534; }
+        
+        /* USP推奨ボックス */
+        .usp-recommendation {
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%);
+            border-radius: var(--radius);
+            margin-bottom: 2rem;
+            border: 1px solid #f59e0b;
         }
         
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        /* 結果セクション */
-        .results-section {
-            display: none;
-        }
-        
-        .results-section.active {
-            display: block;
+        .usp-recommendation h3 {
+            color: #92400e;
+            margin-bottom: 0.5rem;
         }
         
         /* トースト */
@@ -295,17 +470,116 @@
         .toast.show {
             transform: translateX(0);
         }
+        
+        /* タブナビゲーション */
+        .tab-nav {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            background: var(--white);
+            padding: 0.5rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+        }
+        
+        .tab-btn {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            background: transparent;
+            border: none;
+            border-radius: var(--radius);
+            font-weight: 600;
+            color: var(--gray-500);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .tab-btn.active {
+            background: linear-gradient(135deg, #00bcd4 0%, #00acc1 100%);
+            color: white;
+            box-shadow: 0 2px 4px rgba(0, 172, 193, 0.3);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
     <!-- ヘッダー -->
     <header class="header">
         <div class="header-container">
-            <h1 class="logo">商品価値分析ツール</h1>
+            <h1 class="logo">商品価値分析＆競合比較統合ツール</h1>
             <div>
                 <button class="btn btn-secondary" onclick="fillSampleData()">
                     サンプルデータ入力
                 </button>
+            <!-- ターゲット分析 -->
+            <div class="tab-content" id="target-tab">
+                <div class="card">
+                    <div class="card-header">
+                        ターゲット分析結果
+                    </div>
+                    <div class="card-body">
+                        <div style="margin-bottom: 2rem;">
+                            <h4 style="margin-bottom: 1rem;">📊 ペルソナ分析</h4>
+                            <div id="personaContainer">
+                                <!-- ペルソナ分析結果がここに表示される -->
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 2rem;">
+                            <h4 style="margin-bottom: 1rem;">💡 インサイト分析</h4>
+                            <table class="results-table" id="insightTable">
+                                <thead>
+                                    <tr>
+                                        <th>カテゴリ</th>
+                                        <th>欲求深度</th>
+                                        <th>優先度</th>
+                                        <th>インサイト</th>
+                                        <th>キーワード</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="insightTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 訴求軸・コンセプト開発 -->
+            <div class="tab-content" id="appeal-tab">
+                <div class="card">
+                    <div class="card-header">
+                        訴求軸・コンセプト開発結果
+                    </div>
+                    <div class="card-body">
+                        <div class="usp-recommendation" style="margin-bottom: 2rem;">
+                            <h3>🎯 推奨コンセプト</h3>
+                            <div id="conceptRecommendation"></div>
+                        </div>
+                        
+                        <h4 style="margin-bottom: 1rem;">訴求軸候補</h4>
+                        <table class="results-table" id="appealTable">
+                            <thead>
+                                <tr>
+                                    <th>優先度</th>
+                                    <th>ターゲットインサイト</th>
+                                    <th>訴求軸</th>
+                                    <th>訴求内容</th>
+                                    <th>総合スコア</th>
+                                </tr>
+                            </thead>
+                            <tbody id="appealTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
@@ -336,6 +610,7 @@
                             <option value="健康・サプリメント">健康・サプリメント</option>
                             <option value="食品・飲料">食品・飲料</option>
                             <option value="家電・電子機器">家電・電子機器</option>
+                            <option value="家庭用品">家庭用品</option>
                             <option value="ファッション">ファッション</option>
                             <option value="教育・学習">教育・学習</option>
                             <option value="サービス">サービス</option>
@@ -354,9 +629,31 @@
                         </div>
                     </div>
                     
+                    <div class="form-group">
+                        <label class="form-label">
+                            主な競合 <span class="optional">(任意)</span>
+                        </label>
+                        <textarea class="form-textarea" id="competitors" 
+                                  placeholder="競合商品名と簡単な説明を記載（複数ある場合は改行で区切る）"></textarea>
+                        <div class="form-helper">
+                            例：掃除機（15,000円、強力吸引）、ロボット掃除機（50,000円、自動運転）
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            主なターゲット <span class="optional">(任意)</span>
+                        </label>
+                        <textarea class="form-textarea" id="targetAudience" 
+                                  placeholder="想定するターゲット層の属性、悩み、ニーズなど"></textarea>
+                        <div class="form-helper">
+                            例：30-50代女性、エイジングケアに関心が高い、敏感肌で刺激の強い化粧品は避けたい
+                        </div>
+                    </div>
+                    
                     <div class="analyze-section">
                         <button type="submit" class="btn btn-primary btn-block">
-                            メリット・ベネフィット分析を実行
+                            統合分析を実行（メリット・ベネフィット＋競合比較＋USP抽出）
                         </button>
                     </div>
                 </form>
@@ -365,38 +662,131 @@
         
         <!-- ローディング -->
         <div class="loading" id="loading">
-            <div class="spinner"></div>
-            <p>分析中...</p>
+            <div class="card">
+                <div class="card-body">
+                    <div class="spinner"></div>
+                    <p>分析中...</p>
+                    <p style="font-size: 0.875rem; color: var(--gray-500); margin-top: 1rem;">
+                        複数の分析を実行中です。少々お待ちください...
+                    </p>
+                </div>
+            </div>
         </div>
         
         <!-- 結果表示 -->
         <div class="results-section" id="resultsSection">
-            <div class="card">
-                <div class="card-header">
-                    分析結果
-                </div>
-                <div class="card-body">
-                    <table class="results-table" id="resultsTable">
-                        <thead>
-                            <tr>
-                                <th style="width: 10%;">優先順位</th>
-                                <th style="width: 25%;">メリット（強み・特徴）</th>
-                                <th style="width: 15%;">カテゴリ</th>
-                                <th style="width: 25%;">ベネフィット（便益・望ましい未来）</th>
-                                <th style="width: 15%;">カテゴリ</th>
-                                <th style="width: 10%;">判断根拠</th>
-                            </tr>
-                        </thead>
-                        <tbody id="resultsTableBody">
-                            <!-- 結果がここに挿入される -->
-                        </tbody>
-                    </table>
+            <!-- タブナビゲーション -->
+            <div class="tab-nav">
+                <button class="tab-btn active" onclick="switchTab('merit')">
+                    メリット・ベネフィット分析
+                </button>
+                <button class="tab-btn" onclick="switchTab('competitor')">
+                    四段階競合比較
+                </button>
+                <button class="tab-btn" onclick="switchTab('usp')">
+                    USP分析
+                </button>
+                <button class="tab-btn" onclick="switchTab('target')">
+                    ターゲット分析
+                </button>
+                <button class="tab-btn" onclick="switchTab('appeal')">
+                    訴求軸・コンセプト
+                </button>
+            </div>
+            
+            <!-- メリット・ベネフィット分析 -->
+            <div class="tab-content active" id="merit-tab">
+                <div class="card">
+                    <div class="card-header">
+                        メリット・ベネフィット分析結果
+                    </div>
+                    <div class="card-body">
+                        <table class="results-table" id="resultsTable">
+                            <thead>
+                                <tr>
+                                    <th style="width: 10%;">優先順位</th>
+                                    <th style="width: 25%;">メリット（強み・特徴）</th>
+                                    <th style="width: 15%;">カテゴリ</th>
+                                    <th style="width: 25%;">ベネフィット（便益・望ましい未来）</th>
+                                    <th style="width: 15%;">カテゴリ</th>
+                                    <th style="width: 10%;">判断根拠</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resultsTableBody">
+                                <!-- 結果がここに挿入される -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
             
-            <div style="margin-top: 1rem; text-align: right;">
+            <!-- 四段階競合比較 -->
+            <div class="tab-content" id="competitor-tab">
+                <div class="card">
+                    <div class="card-header">
+                        四段階競合比較分析
+                    </div>
+                    <div class="card-body">
+                        <table class="results-table" id="competitorTable">
+                            <thead>
+                                <tr>
+                                    <th>競合ランク</th>
+                                    <th>商品/サービス</th>
+                                    <th>効果・効能</th>
+                                    <th>利便性</th>
+                                    <th>経済性</th>
+                                    <th>総合評価</th>
+                                </tr>
+                            </thead>
+                            <tbody id="competitorTableBody">
+                            </tbody>
+                        </table>
+                        
+                        <div style="margin-top: 2rem; padding: 1rem; background: var(--gray-50); border-radius: var(--radius);">
+                            <h4 style="margin-bottom: 0.5rem;">📊 競合ランク定義</h4>
+                            <ul style="margin-left: 1.5rem; color: var(--gray-700);">
+                                <li><strong>極小競合</strong>: 同一カテゴリ内での直接競合</li>
+                                <li><strong>小競合</strong>: 具体的手法の分類での競合</li>
+                                <li><strong>中競合</strong>: 実施方法の大分類での競合</li>
+                                <li><strong>大競合</strong>: 課題解決の根本手段での競合</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- USP分析 -->
+            <div class="tab-content" id="usp-tab">
+                <div class="card">
+                    <div class="card-header">
+                        USP分析結果
+                    </div>
+                    <div class="card-body">
+                        <div class="usp-recommendation" id="recommendedUSP">
+                            <h3>🎯 推奨USP</h3>
+                            <div id="uspRecommendation"></div>
+                        </div>
+                        
+                        <h4 style="margin-bottom: 1rem;">USP候補一覧</h4>
+                        <table class="results-table" id="uspTable">
+                            <thead>
+                                <tr>
+                                    <th>優先度</th>
+                                    <th>USPタイトル</th>
+                                    <th>競合優位性</th>
+                                    <th>顧客価値</th>
+                                </tr>
+                            </thead>
+                            <tbody id="uspTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 2rem; text-align: right;">
                 <button class="btn btn-secondary" onclick="exportToCSV()">
-                    CSVエクスポート
+                    全結果をCSVエクスポート
                 </button>
             </div>
         </div>
@@ -408,8 +798,19 @@
     </div>
     
     <script>
-        // GAS Proxy設定（デプロイ後のURLに置き換えてください）
-        const GAS_PROXY_URL = 'https://script.google.com/macros/s/AKfycbyzvQeN_uI-DiqynipRE1pem7fJRF_rvt30JHsuAuLH1-k-MDKkotVpukRAsW0lEEGa/exec'; // ← ここをGASのWeb App URLに置き換える
+        // GAS Proxy設定
+        const GAS_PROXY_URL = 'https://script.google.com/macros/s/AKfycbyzvQeN_uI-DiqynipRE1pem7fJRF_rvt30JHsuAuLH1-k-MDKkotVpukRAsW0lEEGa/exec';
+        
+        // タブ切り替え
+        function switchTab(tabName) {
+            // すべてのタブボタンとコンテンツを非アクティブに
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // 選択されたタブをアクティブに
+            event.target.classList.add('active');
+            document.getElementById(tabName + '-tab').classList.add('active');
+        }
         
         // サンプルデータ入力
         function fillSampleData() {
@@ -426,8 +827,11 @@
 - 専門のスキンケアコンサルタントによる無料相談サービス
 
 価格：12,800円（30ml、約2ヶ月分）
-対象：30-50代のエイジングケアに関心の高い女性
-競合製品：SK-II（24,200円）、資生堂エリクシール（8,800円）、KOSE ONE BY KOSE（5,500円）`;
+対象：30-50代のエイジングケアに関心の高い女性`;
+            
+            document.getElementById('competitors').value = `SK-II（24,200円、高級ブランド、ピテラ配合）
+資生堂エリクシール（8,800円、レチノール配合、国内大手ブランド）
+KOSE ONE BY KOSE（5,500円、ナイアシンアミド配合、プチプラ）`;
             
             showToast('サンプルデータを入力しました');
         }
@@ -439,7 +843,92 @@
             const formData = {
                 productName: document.getElementById('productName').value,
                 productCategory: document.getElementById('productCategory').value,
-                productDescription: document.getElementById('productDescription').value
+                productDescription: document.getElementById('productDescription').value,
+                competitors: document.getElementById('competitors').value,
+                targetAudience: document.getElementById('targetAudience').value
+            } else if (analysisType === 'target') {
+                prompt = `
+以下の商品情報から、ターゲット分析（ペルソナ・インサイト）を行ってください。
+
+【商品情報】
+商品名: ${formData.productName}
+カテゴリ: ${formData.productCategory}
+商品説明: ${formData.productDescription}
+${formData.competitors ? `競合: ${formData.competitors}` : ''}
+${formData.targetAudience ? `想定ターゲット: ${formData.targetAudience}` : ''}
+
+【分析指示】
+1. 複数のペルソナを想定（メイン＋サブ）
+2. 各ペルソナのデモグラフィック・サイコグラフィック情報を詳細分析
+3. インサイト（悩み・願望）を10個以上抽出
+4. 欲求深度（潜在・準顕在・顕在）で分類
+
+【出力形式】JSON
+{
+  "personas": [
+    {
+      "name": "ペルソナ名",
+      "category": "カテゴリ",
+      "demographics": {
+        "age": "年齢",
+        "gender": "性別",
+        "occupation": "職業",
+        "income": "収入",
+        "lifestyle": "ライフスタイル"
+      },
+      "psychographics": {
+        "values": "価値観",
+        "interests": "関心事",
+        "behaviors": "行動パターン"
+      }
+    }
+  ],
+  "insights": [
+    {
+      "category": "悩み・課題/願望・欲求",
+      "desireLevel": "潜在/準顕在/顕在",
+      "priority": "高/中/低",
+      "insight": "インサイト内容",
+      "keyword": "キーワード"
+    }
+  ]
+}`;
+            } else if (analysisType === 'appeal') {
+                prompt = `
+以下の商品情報から、訴求軸・コンセプト開発を行ってください。
+
+【商品情報】
+商品名: ${formData.productName}
+カテゴリ: ${formData.productCategory}
+商品説明: ${formData.productDescription}
+${formData.targetAudience ? `想定ターゲット: ${formData.targetAudience}` : ''}
+
+【分析指示】
+1. ターゲットインサイトに基づく訴求軸開発
+2. 機能・感情・独自性の3軸で評価
+3. 具体的な訴求メッセージの提案
+4. 推奨コンセプトの選定
+
+【出力形式】JSON
+{
+  "recommendedConcept": {
+    "title": "コンセプトタイトル",
+    "description": "詳細説明",
+    "reasoning": "選定理由"
+  },
+  "appealAxes": [
+    {
+      "priority": "高/中/低",
+      "targetInsight": "対象インサイト",
+      "appealAxis": "訴求軸",
+      "appealContent": "具体的な訴求内容",
+      "functionalScore": 数値,
+      "emotionalScore": 数値,
+      "uniquenessScore": 数値,
+      "totalScore": 数値
+    }
+  ]
+}`;
             };
             
             // ローディング表示
@@ -447,9 +936,20 @@
             document.getElementById('resultsSection').classList.remove('active');
             
             try {
-                // Gemini APIで分析実行
-                const results = await analyzeWithGemini(formData);
-                displayAnalysisResults(results);
+                // 分析を並行実行
+                const [meritAnalysis, competitorAnalysis, targetAnalysis, appealAnalysis] = await Promise.all([
+                    analyzeWithGemini(formData, 'merit'),
+                    analyzeWithGemini(formData, 'competitor'),
+                    analyzeWithGemini(formData, 'target'),
+                    analyzeWithGemini(formData, 'appeal')
+                ]);
+                
+                // 結果表示
+                displayMeritAnalysisResults(meritAnalysis);
+                displayCompetitorAnalysisResults(competitorAnalysis);
+                displayTargetAnalysisResults(targetAnalysis);
+                displayAppealAnalysisResults(appealAnalysis);
+                
                 document.getElementById('loading').classList.remove('active');
                 document.getElementById('resultsSection').classList.add('active');
                 showToast('分析が完了しました');
@@ -463,61 +963,26 @@
             }
         });
         
-        // Gemini APIを使用した分析（GASプロキシ経由）
-        async function analyzeWithGemini(formData) {
-            // ステップ1: メリットの網羅的抽出と優先順位付け
-            const meritPrompt = `
-以下の商品情報から、包括的な商品価値分析を行ってください。
+        // Gemini APIを使用した分析
+        async function analyzeWithGemini(formData, analysisType) {
+            let prompt = '';
+            
+            if (analysisType === 'merit') {
+                prompt = `
+以下の商品情報から、メリット・ベネフィット分析を行ってください。
 
 【商品情報】
 商品名: ${formData.productName}
 カテゴリ: ${formData.productCategory}
 商品説明: ${formData.productDescription}
+${formData.competitors ? `競合: ${formData.competitors}` : ''}
 
-【分析手順】
+【分析指示】
+1. メリット（商品の強み・特徴）を10個以上抽出
+2. 各メリットに対して2-3個のベネフィット（顧客価値）を導出
+3. 競合優位性を考慮した優先順位付け（1st/2nd/3rd）
 
-ステップ1: メリットの網羅的抽出
-以下のカテゴリから、考えられる限りのメリット（商品の強み・特徴）を10-15個抽出してください：
-- 成分・材料・素材
-- 製法・技術・工程
-- 効果・効能・結果
-- 知見・ノウハウ・専門性
-- 使用方法・利便性
-- 製品品質・安全性
-- 権威性・信頼性・実績
-- 経済条件・コスパ・価格
-- デザイン・見た目・パッケージ
-- サポート・アフター・保証
-
-ステップ2: 戦略的優先順位付け
-各メリットを以下の基準で評価してください：
-
-【1st（最重要）- USP候補】
-✓ 競合が持たない独自性がある
-✓ ターゲットの本質的ニーズに直結
-✓ 価格に見合う差別化価値を提供
-✓ 購買決定の最後の一押しになる
-
-【2nd（重要）- 商品価値の核】
-✓ カテゴリとして重要だが競合も持っている
-✓ ターゲットが期待する基本価値
-✓ 商品の信頼性・品質を担保する要素
-
-【3rd（補助的）- 付加価値】
-✓ あると嬉しいが決定的ではない
-✓ 競合比較で僅差をつける要素
-✓ 特定のサブセグメントには響く
-
-ステップ3: ベネフィット分析
-各メリットから導かれるベネフィット（顧客が得られる価値）を2-3個抽出してください。
-観点：
-- 機能的ベネフィット（実用性、効率性、性能向上）
-- 感情的ベネフィット（安心感、満足感、自信、喜び）
-- 社会的ベネフィット（他者からの評価、ステータス）
-- 経済的ベネフィット（コスト削減、投資対効果）
-
-【出力形式】
-以下のJSON形式で出力してください：
+【出力形式】JSON
 {
   "analysis": [
     {
@@ -527,74 +992,101 @@
       "benefits": [
         {
           "content": "ベネフィット内容",
-          "category": "効果・効能/製法/製品品質/利便性・快適さ/イメージ・印象/権威性・信頼性/リスク回避/経済性"
+          "category": "カテゴリ"
         }
       ],
       "rationale": "優先順位の判断根拠"
     }
   ]
 }`;
+            } else if (analysisType === 'competitor') {
+                prompt = `
+以下の商品情報から、四段階競合比較とUSP分析を行ってください。
 
+【商品情報】
+商品名: ${formData.productName}
+カテゴリ: ${formData.productCategory}
+商品説明: ${formData.productDescription}
+${formData.competitors ? `競合: ${formData.competitors}` : ''}
+
+【分析指示】
+1. 四段階競合比較（極小・小・中・大）で評価
+2. 各競合との効果・利便性・経済性を比較
+3. USP候補を5つ以上抽出し、優先順位付け
+4. 推奨USPの選定と戦略提案
+
+【出力形式】JSON
+{
+  "competitorAnalysis": [
+    {
+      "rank": "極小競合/小競合/中競合/大競合",
+      "product": "商品名",
+      "isOwnProduct": true/false,
+      "effectiveness": "◎/○/△/×",
+      "convenience": "◎/○/△/×",
+      "economy": "◎/○/△/×",
+      "overall": "総合評価"
+    }
+  ],
+  "uspAnalysis": {
+    "recommendedUSP": {
+      "title": "USPタイトル",
+      "description": "詳細説明",
+      "strategy": "戦略提案"
+    },
+    "uspCandidates": [
+      {
+        "priority": "高/中/低",
+        "title": "USP名",
+        "advantage": "競合優位性",
+        "value": "顧客価値"
+      }
+    ]
+  }
+}`;
+            }
+            
             try {
-                console.log('分析開始 - GAS URL:', GAS_PROXY_URL);
-                console.log('送信するプロンプト長:', meritPrompt.length);
-                
-                // GASプロキシ経由でGemini APIを呼び出し
-                // mode: 'cors'を明示的に指定
                 const response = await fetch(GAS_PROXY_URL, {
                     method: 'POST',
-                    mode: 'cors', // CORSモードを明示的に指定
+                    mode: 'cors',
                     headers: {
-                        'Content-Type': 'text/plain' // GASはtext/plainを期待
+                        'Content-Type': 'text/plain'
                     },
-                    body: JSON.stringify({
-                        prompt: meritPrompt
-                    })
+                    body: JSON.stringify({ prompt: prompt })
                 });
                 
-                console.log('レスポンスステータス:', response.status);
-                
                 if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('レスポンスエラー:', errorText);
                     throw new Error(`API request failed: ${response.status}`);
                 }
-
+                
                 const result = await response.json();
-                console.log('GASからの応答:', result);
                 
                 if (!result.success) {
-                    console.error('GAS処理エラー:', result.error);
                     throw new Error(result.error || 'API error');
                 }
                 
                 const resultText = result.data.candidates[0].content.parts[0].text;
-                console.log('Gemini応答テキスト長:', resultText.length);
-                
-                // JSONパース（マークダウンコードブロックを除去）
                 const jsonStr = resultText.replace(/```json\n?|\n?```/g, '').trim();
-                const results = JSON.parse(jsonStr);
-                console.log('パース結果:', results);
                 
-                return results.analysis;
+                return JSON.parse(jsonStr);
             } catch (error) {
-                console.error('分析エラーの詳細:', error);
-                console.error('エラースタック:', error.stack);
+                console.error(`${analysisType}分析エラー:`, error);
                 throw error;
             }
         }
         
-        // 分析結果の表示
-        function displayAnalysisResults(analysisData) {
+        // メリット・ベネフィット分析結果の表示
+        function displayMeritAnalysisResults(data) {
             const tbody = document.getElementById('resultsTableBody');
             tbody.innerHTML = '';
             
-            analysisData.forEach(item => {
-                // 各メリットに対して、ベネフィットの数だけ行を作成
+            if (!data || !data.analysis) return;
+            
+            data.analysis.forEach(item => {
                 item.benefits.forEach((benefit, index) => {
                     const tr = document.createElement('tr');
                     
-                    // 最初の行のみメリット情報を表示
                     if (index === 0) {
                         tr.innerHTML = `
                             <td rowspan="${item.benefits.length}">
@@ -618,141 +1110,320 @@
             });
         }
         
+        // 競合分析結果の表示
+        function displayCompetitorAnalysisResults(data) {
+            if (!data) return;
+            
+            // 四段階競合比較
+            if (data.competitorAnalysis) {
+                const tbody = document.getElementById('competitorTableBody');
+                tbody.innerHTML = '';
+                
+                data.competitorAnalysis.forEach(item => {
+                    const tr = document.createElement('tr');
+                    
+                    const rankClass = {
+                        '極小競合': 'rank-micro',
+                        '小競合': 'rank-small',
+                        '中競合': 'rank-medium',
+                        '大競合': 'rank-large'
+                    }[item.rank] || '';
+                    
+                    const productName = item.isOwnProduct ? `<strong>${item.product}（自社）</strong>` : item.product;
+                    
+                    tr.innerHTML = `
+                        <td><span class="rank-badge ${rankClass}">${item.rank}</span></td>
+                        <td>${productName}</td>
+                        <td class="rating ${getRatingClass(item.effectiveness)}">${item.effectiveness}</td>
+                        <td class="rating ${getRatingClass(item.convenience)}">${item.convenience}</td>
+                        <td class="rating ${getRatingClass(item.economy)}">${item.economy}</td>
+                        <td>${item.overall}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+            
+            // USP分析
+            if (data.uspAnalysis) {
+                // 推奨USP
+                if (data.uspAnalysis.recommendedUSP) {
+                    document.getElementById('uspRecommendation').innerHTML = `
+                        <h4>${data.uspAnalysis.recommendedUSP.title}</h4>
+                        <p style="margin-top: 0.5rem;">${data.uspAnalysis.recommendedUSP.description}</p>
+                        <p style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;">
+                            <strong>戦略：</strong> ${data.uspAnalysis.recommendedUSP.strategy || ''}
+                        </p>
+                    `;
+                }
+                
+                // USP候補
+                if (data.uspAnalysis.uspCandidates) {
+                    const uspTbody = document.getElementById('uspTableBody');
+                    uspTbody.innerHTML = '';
+                    
+                    data.uspAnalysis.uspCandidates.forEach(usp => {
+                        const tr = document.createElement('tr');
+                        
+                        const priorityClass = {
+                            '高': 'priority-high',
+                            '中': 'priority-medium',
+                            '低': 'priority-low'
+                        }[usp.priority] || 'priority-medium';
+                        
+                        tr.innerHTML = `
+                            <td><span class="usp-priority ${priorityClass}">${usp.priority}</span></td>
+                            <td>${usp.title}</td>
+                            <td>${usp.advantage}</td>
+                            <td>${usp.value}</td>
+                        `;
+                        uspTbody.appendChild(tr);
+                    });
+                }
+            }
+        }
+        
+        // 評価クラス取得
+        function getRatingClass(rating) {
+            switch(rating) {
+                case '◎': return 'rating-excellent';
+                case '○': return 'rating-good';
+                case '△': return 'rating-average';
+                case '×': return 'rating-poor';
+                default: return '';
+            }
+        }
+        
         // サンプル結果表示
         function displaySampleResults(formData) {
-            const sampleData = [
-                {
-                    priority: '1st',
-                    merit: '独自開発で証明されたマイクロカプセル化技術により3倍の浸透力・効果・結果',
-                    meritCategory: 'USP候補(1st)',
-                    benefit: 'エビデンスに基づいた効果に信頼性を感じ、ターゲット層が求める具体的な結果を提供。綺合製品との価値の棲み分けも可能',
-                    benefitCategory: '信頼価値(2nd)',
-                    rationale: '15'
-                },
-                {
-                    priority: '1st',
-                    merit: '',
-                    meritCategory: '',
-                    benefit: '科学的な根拠に基づく根拠だからあるため、自信を持って買・推薦・信頼性',
-                    benefitCategory: '価値価値(2nd)',
-                    rationale: '2'
-                },
-                {
-                    priority: '2nd',
-                    merit: '皮膚科医監修で開発された安心の処方・知見・ノウハウ・専門性',
-                    meritCategory: '',
-                    benefit: '専門家の指導のもとで開発されているため、安心感があり製品品質・安全性',
-                    benefitCategory: '感情的価値',
-                    rationale: '4'
-                },
-                {
-                    priority: '',
-                    merit: '',
-                    meritCategory: '',
-                    benefit: '他の製品との違いをアピールでき、選択肢としての魅力が社会的ベネフィット',
-                    benefitCategory: '',
-                    rationale: '9'
-                },
-                {
-                    priority: '2nd',
-                    merit: 'ヒアルロン酸、ビタミンC誘導体、成分・材料・素材',
-                    meritCategory: '',
-                    benefit: '複数の有効成分が相乗効果を生むことで、総合的な肌の改善・効果・効能',
-                    benefitCategory: '',
-                    rationale: ''
-                },
-                {
-                    priority: '',
-                    merit: '',
-                    meritCategory: '',
-                    benefit: 'エイジングケアにおいて重要な成分であり、ターゲットが期待する基本的な価値を提供。これがあることより加速感もアピール可能',
-                    benefitCategory: '',
-                    rationale: ''
-                },
-                {
-                    priority: '2nd',
-                    merit: '敏感肌でも使用できる優しい処方・製品品質・安全性',
-                    meritCategory: '',
-                    benefit: '肌トラブルのリスクを軽減し、安心して使用できるため、リスク回避',
-                    benefitCategory: '',
-                    rationale: ''
-                },
-                {
-                    priority: '',
-                    merit: '',
-                    meritCategory: '',
-                    benefit: '敏感肌の女性にとっては肌に重要であり、総合製品がこの特性を欠いている場合、破坏性を持つ',
-                    benefitCategory: '',
-                    rationale: ''
-                },
-                {
-                    priority: '2nd',
-                    merit: '無添加処方（パラベン・アルコール製品品質・安全性',
-                    meritCategory: '',
-                    benefit: '肌に優しい成分で作られているため、長期的に使用しても製品品質・安全性',
-                    benefitCategory: '',
-                    rationale: ''
-                },
-                {
-                    priority: '',
-                    merit: '',
-                    meritCategory: '',
-                    benefit: '無添加に対する関心は高く、特にエイジングケアに取り組む層にとっては必須条件',
-                    benefitCategory: '',
-                    rationale: ''
-                },
-                {
-                    priority: '3rd',
-                    merit: '高価格帯ながら、総合製品よりも経済条件・コスパ・価格',
-                    meritCategory: '',
-                    benefit: '高品質な製品であるため、コスト以上の価値を感じることと経済的ベネフィット',
-                    benefitCategory: '',
-                    rationale: ''
-                },
-                {
-                    priority: '',
-                    merit: '',
-                    meritCategory: '',
-                    benefit: '価格は高いが、効果と品質を考慮すると妥当な価格であり、特に一ターゲットが最大への投資を借しまない場合には響く',
-                    benefitCategory: '',
-                    rationale: ''
+            // サンプルのメリット・ベネフィット分析結果
+            const sampleMeritData = {
+                analysis: [
+                    {
+                        priority: '1st',
+                        merit: '独自開発のマイクロカプセル化技術により3倍の浸透力',
+                        meritCategory: '技術・効果',
+                        benefits: [
+                            { content: 'レチノールの効果を最大限に引き出し、短期間で実感', category: '効果・効能' },
+                            { content: '競合製品より少量で高い効果が得られ経済的', category: '経済性' }
+                        ],
+                        rationale: '独自技術による差別化'
+                    },
+                    {
+                        priority: '2nd',
+                        merit: '皮膚科医監修で開発された処方',
+                        meritCategory: '権威性・信頼性',
+                        benefits: [
+                            { content: '医学的根拠に基づく安心感', category: '信頼性' },
+                            { content: '敏感肌でも使用できる安心設計', category: 'リスク回避' }
+                        ],
+                        rationale: '信頼性の担保'
+                    }
+                ]
+            };
+            
+            // サンプルの競合分析結果
+            const sampleCompetitorData = {
+                competitorAnalysis: [
+                    {
+                        rank: '極小競合',
+                        product: formData.productName,
+                        isOwnProduct: true,
+                        effectiveness: '◎',
+                        convenience: '◎',
+                        economy: '○',
+                        overall: '◎ 優位'
+                    },
+                    {
+                        rank: '極小競合',
+                        product: 'SK-II',
+                        isOwnProduct: false,
+                        effectiveness: '○',
+                        convenience: '○',
+                        economy: '×',
+                        overall: '△ 高価格'
+                    },
+                    {
+                        rank: '小競合',
+                        product: '資生堂エリクシール',
+                        isOwnProduct: false,
+                        effectiveness: '○',
+                        convenience: '◎',
+                        economy: '○',
+                        overall: '○ 標準'
+                    }
+                ],
+                uspAnalysis: {
+                    recommendedUSP: {
+                        title: '医学的根拠×独自技術で実現する「3倍浸透レチノール」',
+                        description: '皮膚科医監修のもと開発された独自のマイクロカプセル技術により、従来品の3倍の浸透力を実現。敏感肌でも使える低刺激設計で、エイジングケアの新基準を提案。',
+                        strategy: '技術的優位性と安全性を同時に訴求し、高価格帯ながら価値を明確化'
+                    },
+                    uspCandidates: [
+                        {
+                            priority: '高',
+                            title: '3倍浸透のマイクロカプセル技術',
+                            advantage: '特許技術による独自性',
+                            value: '短期間での効果実感'
+                        },
+                        {
+                            priority: '高',
+                            title: '皮膚科医監修の安心処方',
+                            advantage: '医学的根拠の明確化',
+                            value: '敏感肌でも安心使用'
+                        },
+                        {
+                            priority: '中',
+                            title: '30日間返金保証',
+                            advantage: 'リスクフリーな試用',
+                            value: '購入障壁の除去'
+                        }
+                    ]
                 }
-            ];
+            };
             
-            const tbody = document.getElementById('resultsTableBody');
-            tbody.innerHTML = '';
+            // サンプルのターゲット分析結果
+            const sampleTargetData = {
+                personas: [
+                    {
+                        name: "美容意識の高い主婦",
+                        category: "美容上級者",
+                        demographics: {
+                            age: "30-45歳",
+                            gender: "女性",
+                            occupation: "主婦・パート",
+                            income: "世帯年収600万円以上",
+                            lifestyle: "美容・健康に投資"
+                        },
+                        psychographics: {
+                            values: "品質重視、自己投資",
+                            interests: "最新美容トレンド、成分研究",
+                            behaviors: "SNSで情報収集、口コミ重視"
+                        }
+                    },
+                    {
+                        name: "忙しいワーキングマザー",
+                        category: "時短重視派",
+                        demographics: {
+                            age: "25-40歳",
+                            gender: "女性",
+                            occupation: "会社員",
+                            income: "個人年収400万円以上",
+                            lifestyle: "仕事と家庭の両立"
+                        },
+                        psychographics: {
+                            values: "効率重視、コスパ",
+                            interests: "時短美容、簡単ケア",
+                            behaviors: "オンライン購入、定期購入"
+                        }
+                    }
+                ],
+                insights: [
+                    {
+                        category: "悩み・課題",
+                        desireLevel: "顕在",
+                        priority: "高",
+                        insight: "色々な美容商品を試しているが成果を実感できない",
+                        keyword: "美容迷子"
+                    },
+                    {
+                        category: "願望・欲求",
+                        desireLevel: "準顕在",
+                        priority: "高",
+                        insight: "忙しくても美しさを維持したい",
+                        keyword: "時短美容"
+                    },
+                    {
+                        category: "悩み・課題",
+                        desireLevel: "潜在",
+                        priority: "中",
+                        insight: "高価な商品の効果に疑問を感じている",
+                        keyword: "コスパ不安"
+                    }
+                ]
+            };
             
-            sampleData.forEach(row => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${row.priority ? `<span class="priority-badge priority-${row.priority}">${row.priority}</span>` : ''}</td>
-                    <td>${row.merit}</td>
-                    <td>${row.meritCategory}</td>
-                    <td>${row.benefit}</td>
-                    <td>${row.benefitCategory}</td>
-                    <td style="text-align: center;">${row.rationale}</td>
-                `;
-                tbody.appendChild(tr);
-            });
+            // サンプルの訴求軸・コンセプト分析結果
+            const sampleAppealData = {
+                recommendedConcept: {
+                    title: "科学と優しさが出会う、新世代のエイジングケア",
+                    description: "医学的根拠に基づく独自技術と、敏感肌への優しさを両立。3倍浸透のマイクロカプセル技術で、これまでにない効果実感をお届けします。",
+                    reasoning: "技術的優位性（3倍浸透）と安全性（敏感肌対応）の両立が、美容上級者と時短派の両方のニーズに応える"
+                },
+                appealAxes: [
+                    {
+                        priority: "高",
+                        targetInsight: "色々試しても効果を実感できない",
+                        appealAxis: "技術的優位性",
+                        appealContent: "3倍浸透のマイクロカプセル技術で確実な効果実感",
+                        totalScore: 28
+                    },
+                    {
+                        priority: "高",
+                        targetInsight: "忙しくても美しさを維持したい",
+                        appealAxis: "時短価値",
+                        appealContent: "1日1回のシンプルケアで24時間効果持続",
+                        totalScore: 26
+                    },
+                    {
+                        priority: "中",
+                        targetInsight: "敏感肌でも安心して使いたい",
+                        appealAxis: "安全性",
+                        appealContent: "皮膚科医監修の低刺激設計で毎日安心",
+                        totalScore: 24
+                    }
+                ]
+            };
+            
+            displayMeritAnalysisResults(sampleMeritData);
+            displayCompetitorAnalysisResults(sampleCompetitorData);
+            displayTargetAnalysisResults(sampleTargetData);
+            displayAppealAnalysisResults(sampleAppealData);
         }
         
         // CSV エクスポート
         function exportToCSV() {
-            const table = document.getElementById('resultsTable');
             let csv = '\uFEFF'; // BOM for UTF-8
+            const date = new Date().toISOString().split('T')[0];
             
-            // ヘッダー
-            const headers = [];
-            table.querySelectorAll('thead th').forEach(th => {
-                headers.push('"' + th.textContent.replace(/"/g, '""') + '"');
+            // メリット・ベネフィット分析
+            csv += 'メリット・ベネフィット分析\n';
+            csv += '優先順位,メリット,カテゴリ,ベネフィット,カテゴリ,判断根拠\n';
+            
+            document.querySelectorAll('#resultsTableBody tr').forEach(tr => {
+                const cells = tr.querySelectorAll('td');
+                const row = Array.from(cells).map(cell => {
+                    const text = cell.textContent.replace(/"/g, '""');
+                    return `"${text}"`;
+                });
+                csv += row.join(',') + '\n';
             });
-            csv += headers.join(',') + '\n';
             
-            // データ
-            table.querySelectorAll('tbody tr').forEach(tr => {
-                const row = [];
-                tr.querySelectorAll('td').forEach(td => {
-                    row.push('"' + td.textContent.replace(/"/g, '""') + '"');
+            csv += '\n';
+            
+            // 四段階競合比較
+            csv += '四段階競合比較分析\n';
+            csv += '競合ランク,商品,効果,利便性,経済性,総合評価\n';
+            
+            document.querySelectorAll('#competitorTableBody tr').forEach(tr => {
+                const cells = tr.querySelectorAll('td');
+                const row = Array.from(cells).map(cell => {
+                    const text = cell.textContent.replace(/"/g, '""');
+                    return `"${text}"`;
+                });
+                csv += row.join(',') + '\n';
+            });
+            
+            csv += '\n';
+            
+            // USP分析
+            csv += 'USP分析\n';
+            csv += '優先度,USP,競合優位性,顧客価値\n';
+            
+            document.querySelectorAll('#uspTableBody tr').forEach(tr => {
+                const cells = tr.querySelectorAll('td');
+                const row = Array.from(cells).map(cell => {
+                    const text = cell.textContent.replace(/"/g, '""');
+                    return `"${text}"`;
                 });
                 csv += row.join(',') + '\n';
             });
@@ -761,7 +1432,7 @@
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
-            link.download = `商品価値分析_${new Date().toISOString().split('T')[0]}.csv`;
+            link.download = `商品価値分析_${date}.csv`;
             link.click();
             
             showToast('CSVファイルをダウンロードしました');
@@ -778,25 +1449,6 @@
                 toast.classList.remove('show');
             }, 3000);
         }
-        
-        // デバッグ用：GAS接続テスト
-        async function testGASConnection() {
-            console.log('GAS接続テスト開始...');
-            console.log('GAS URL:', GAS_PROXY_URL);
-            
-            try {
-                const response = await fetch(GAS_PROXY_URL);
-                const data = await response.json();
-                console.log('GAS接続テスト成功:', data);
-                showToast('✅ GAS接続成功');
-            } catch (error) {
-                console.error('GAS接続エラー:', error);
-                showToast('❌ GAS接続失敗: ' + error.message);
-            }
-        }
-        
-        // ページ読み込み後にテスト実行（必要に応じてコメントアウト）
-        // window.addEventListener('load', testGASConnection);
     </script>
 </body>
 </html>
